@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>뉴스 모니터링 대시보드</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, sans-serif;
+      background: #0c0c18;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    /* 헤더 */
+    header {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      padding: 28px 24px 20px;
+      text-align: center;
+      border-bottom: 1px solid #2a2a4a;
+    }
+
+    header h1 { font-size: 1.5rem; color: #7ec8e3; margin-bottom: 4px; }
+    header p { font-size: 0.82rem; color: #888; }
+
+    /* 메인 탭 */
+    .main-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      background: #12122a;
+      border-bottom: 2px solid #2a2a4a;
+    }
+
+    .main-tab {
+      padding: 14px 36px;
+      color: #888;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .main-tab:hover { color: #aaa; }
+    .main-tab.active { color: #7ec8e3; border-bottom-color: #7ec8e3; }
+
+    /* 컨텐츠 영역 */
+    .content { max-width: 1100px; margin: 0 auto; padding: 24px; }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* 서브 탭 (회사/키워드 선택) */
+    .sub-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .sub-tab {
+      padding: 8px 16px;
+      background: #1a1a2e;
+      border: 1px solid #2a2a4a;
+      border-radius: 20px;
+      color: #888;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .sub-tab:hover { border-color: #4a4a6a; color: #bbb; }
+    .sub-tab.active { background: #7ec8e3; color: #0c0c18; border-color: #7ec8e3; font-weight: 600; }
+
+    .sub-tab .count {
+      display: inline-block;
+      background: rgba(0,0,0,0.2);
+      font-size: 0.7rem;
+      padding: 1px 6px;
+      border-radius: 8px;
+      margin-left: 4px;
+    }
+
+    .sub-tab.active .count { background: rgba(0,0,0,0.3); color: #0c0c18; }
+
+    /* 기사 리스트 */
+    .articles { display: flex; flex-direction: column; gap: 10px; }
+
+    .article {
+      background: #161630;
+      border: 1px solid #2a2a4a;
+      border-radius: 8px;
+      padding: 16px 20px;
+      transition: border-color 0.2s;
+    }
+
+    .article:hover { border-color: #3a5a7a; }
+
+    .article .source {
+      font-size: 0.7rem;
+      color: #5a8aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .article .title {
+      font-size: 0.95rem;
+      color: #ddd;
+      font-weight: 600;
+      line-height: 1.45;
+      margin-bottom: 6px;
+    }
+
+    .article .title a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .article .title a:hover { color: #7ec8e3; }
+
+    .article .desc {
+      font-size: 0.83rem;
+      color: #999;
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+
+    .article .date {
+      font-size: 0.73rem;
+      color: #555;
+    }
+
+    /* 로딩 / 상태 */
+    .loading {
+      text-align: center;
+      padding: 60px 0;
+      color: #666;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 24px; height: 24px;
+      border: 3px solid #2a2a4a;
+      border-top-color: #7ec8e3;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 10px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .empty {
+      text-align: center;
+      padding: 40px;
+      color: #555;
+      font-size: 0.88rem;
+    }
+
+    .error-msg {
+      background: #2a1a1a;
+      border: 1px solid #5a2a2a;
+      border-radius: 8px;
+      padding: 14px;
+      color: #e88;
+      font-size: 0.85rem;
+    }
+
+    .refresh-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-bottom: 16px;
+      gap: 12px;
+    }
+
+    .refresh-bar .last-update { font-size: 0.75rem; color: #555; }
+
+    .refresh-btn {
+      padding: 6px 14px;
+      background: #1a1a2e;
+      border: 1px solid #3a3a5a;
+      border-radius: 6px;
+      color: #7ec8e3;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .refresh-btn:hover { background: #2a2a4a; }
+    .refresh-btn:disabled { color: #555; cursor: wait; }
+
+    /* Summary 패널 */
+    .summary-section {
+      margin-bottom: 32px;
+    }
+
+    .summary-section-title {
+      font-size: 1.05rem;
+      color: #7ec8e3;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #2a2a4a;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    .summary-group {
+      background: #161630;
+      border: 1px solid #2a2a4a;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .summary-group-header {
+      background: #1a1a3a;
+      padding: 10px 16px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #ccc;
+      border-bottom: 1px solid #2a2a4a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .summary-group-header .count {
+      font-size: 0.7rem;
+      color: #6a8fa8;
+      font-weight: 400;
+    }
+
+    .summary-article {
+      padding: 10px 16px;
+      border-bottom: 1px solid #1a1a2e;
+      transition: background 0.15s;
+    }
+
+    .summary-article:last-child { border-bottom: none; }
+    .summary-article:hover { background: #1c1c3a; }
+
+    .summary-article .title {
+      font-size: 0.83rem;
+      color: #ddd;
+      font-weight: 500;
+      line-height: 1.4;
+      margin-bottom: 3px;
+    }
+
+    .summary-article .title a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .summary-article .title a:hover { color: #7ec8e3; }
+
+    .summary-article .meta {
+      font-size: 0.7rem;
+      color: #555;
+      display: flex;
+      gap: 8px;
+    }
+
+    .summary-article .meta .src { color: #5a8aaa; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>News Monitoring Dashboard</h1>
+    <p>경쟁사 및 키워드 뉴스 모니터링</p>
+  </header>
+
+  <nav class="main-tabs">
+    <div class="main-tab active" data-panel="summary">Summary</div>
+    <div class="main-tab" data-panel="competitors">경쟁사 모니터링</div>
+    <div class="main-tab" data-panel="keywords">키워드 모니터링</div>
+  </nav>
+
+  <div class="content">
+    <!-- Summary 패널 -->
+    <div id="summary" class="panel active">
+      <div class="refresh-bar">
+        <span class="last-update" id="summaryTime"></span>
+        <button class="refresh-btn" onclick="loadSummary()">새로고침</button>
+      </div>
+      <div id="summaryContent">
+        <div class="loading"><div class="spinner"></div><div>뉴스를 불러오는 중...</div></div>
+      </div>
+    </div>
+
+    <!-- 경쟁사 패널 -->
+    <div id="competitors" class="panel">
+      <div class="refresh-bar">
+        <span class="last-update" id="compTime"></span>
+        <button class="refresh-btn" onclick="loadCompetitors()">새로고침</button>
+      </div>
+      <div class="sub-tabs" id="compTabs"></div>
+      <div class="articles" id="compArticles">
+        <div class="loading"><div class="spinner"></div><div>뉴스를 불러오는 중...</div></div>
+      </div>
+    </div>
+
+    <!-- 키워드 패널 -->
+    <div id="keywords" class="panel">
+      <div class="refresh-bar">
+        <span class="last-update" id="kwTime"></span>
+        <button class="refresh-btn" onclick="loadKeywords()">새로고침</button>
+      </div>
+      <div class="sub-tabs" id="kwTabs"></div>
+      <div class="articles" id="kwArticles">
+        <div class="loading"><div class="spinner"></div><div>뉴스를 불러오는 중...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let compData = [];
+    let kwData = [];
+    let activeCompIdx = 0;
+    let activeKwIdx = 0;
+
+    // 메인 탭 전환
+    document.querySelectorAll('.main-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.getElementById(tab.dataset.panel).classList.add('active');
+      });
+    });
+
+    // 경쟁사 데이터 로드
+    async function loadCompetitors() {
+      const articlesEl = document.getElementById('compArticles');
+      articlesEl.innerHTML = '<div class="loading"><div class="spinner"></div><div>뉴스를 불러오는 중...</div></div>';
+
+      try {
+        const res = await fetch('/api/competitors');
+        compData = await res.json();
+        renderSubTabs('compTabs', compData, activeCompIdx, idx => { activeCompIdx = idx; renderArticles('compArticles', compData[idx]); });
+        renderArticles('compArticles', compData[activeCompIdx]);
+        document.getElementById('compTime').textContent = '업데이트: ' + new Date().toLocaleTimeString('ko-KR');
+      } catch (err) {
+        articlesEl.innerHTML = `<div class="error-msg">데이터를 불러올 수 없습니다: ${esc(err.message)}</div>`;
+      }
+    }
+
+    // 키워드 데이터 로드
+    async function loadKeywords() {
+      const articlesEl = document.getElementById('kwArticles');
+      articlesEl.innerHTML = '<div class="loading"><div class="spinner"></div><div>뉴스를 불러오는 중...</div></div>';
+
+      try {
+        const res = await fetch('/api/keywords');
+        kwData = await res.json();
+        renderSubTabs('kwTabs', kwData, activeKwIdx, idx => { activeKwIdx = idx; renderArticles('kwArticles', kwData[idx]); });
+        renderArticles('kwArticles', kwData[activeKwIdx]);
+        document.getElementById('kwTime').textContent = '업데이트: ' + new Date().toLocaleTimeString('ko-KR');
+      } catch (err) {
+        articlesEl.innerHTML = `<div class="error-msg">데이터를 불러올 수 없습니다: ${esc(err.message)}</div>`;
+      }
+    }
+
+    // 서브 탭 렌더
+    function renderSubTabs(containerId, data, activeIdx, onClick) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = data.map((group, i) => {
+        const cls = i === activeIdx ? 'sub-tab active' : 'sub-tab';
+        return `<div class="${cls}" data-idx="${i}">${esc(group.name)}<span class="count">${group.articles.length}</span></div>`;
+      }).join('');
+
+      container.querySelectorAll('.sub-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const idx = parseInt(tab.dataset.idx);
+          container.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          onClick(idx);
+        });
+      });
+    }
+
+    // 기사 목록 렌더
+    function renderArticles(containerId, group) {
+      const container = document.getElementById(containerId);
+      if (!group || !group.articles || group.articles.length === 0) {
+        container.innerHTML = '<div class="empty">관련 뉴스가 없습니다</div>';
+        return;
+      }
+
+      container.innerHTML = group.articles.map(a => `
+        <div class="article">
+          ${a.source ? `<div class="source">${esc(a.source)}</div>` : ''}
+          <div class="title"><a href="${esc(a.link)}" target="_blank" rel="noopener">${esc(a.title)}</a></div>
+          ${a.description ? `<div class="desc">${esc(a.description)}</div>` : ''}
+          <div class="date">${formatDate(a.pubDate)}</div>
+        </div>
+      `).join('');
+    }
+
+    // 날짜 포맷
+    function formatDate(str) {
+      if (!str) return '';
+      try {
+        const d = new Date(str);
+        const now = new Date();
+        const diff = now - d;
+        const mins = Math.floor(diff / 60000);
+        if (mins < 1) return '방금 전';
+        if (mins < 60) return `${mins}분 전`;
+        const hours = Math.floor(mins / 60);
+        if (hours < 24) return `${hours}시간 전`;
+        const days = Math.floor(hours / 24);
+        if (days < 7) return `${days}일 전`;
+        return d.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+      } catch { return str; }
+    }
+
+    function esc(str) {
+      const d = document.createElement('div');
+      d.textContent = str || '';
+      return d.innerHTML;
+    }
+
+    // Summary 데이터 로드
+    async function loadSummary() {
+      const el = document.getElementById('summaryContent');
+      el.innerHTML = '<div class="loading"><div class="spinner"></div><div>뉴스를 불러오는 중...</div></div>';
+
+      try {
+        const res = await fetch('/api/summary');
+        const data = await res.json();
+        renderSummary(data);
+        document.getElementById('summaryTime').textContent = '업데이트: ' + new Date().toLocaleTimeString('ko-KR');
+      } catch (err) {
+        el.innerHTML = `<div class="error-msg">데이터를 불러올 수 없습니다: ${esc(err.message)}</div>`;
+      }
+    }
+
+    function renderSummary(data) {
+      const el = document.getElementById('summaryContent');
+      let html = '';
+
+      // 경쟁사 섹션
+      html += '<div class="summary-section">';
+      html += '<div class="summary-section-title">경쟁사 최신 뉴스</div>';
+      html += '<div class="summary-grid">';
+      data.competitors.forEach(group => {
+        html += renderSummaryGroup(group);
+      });
+      html += '</div></div>';
+
+      // 키워드 섹션
+      html += '<div class="summary-section">';
+      html += '<div class="summary-section-title">키워드 최신 뉴스</div>';
+      html += '<div class="summary-grid">';
+      data.keywords.forEach(group => {
+        html += renderSummaryGroup(group);
+      });
+      html += '</div></div>';
+
+      el.innerHTML = html;
+    }
+
+    function renderSummaryGroup(group) {
+      const articles = group.articles || [];
+      let html = '<div class="summary-group">';
+      html += `<div class="summary-group-header">${esc(group.name)}<span class="count">${articles.length}건</span></div>`;
+
+      if (articles.length === 0) {
+        html += '<div class="summary-article"><div class="meta">관련 뉴스 없음</div></div>';
+      } else {
+        articles.forEach(a => {
+          html += `<div class="summary-article">
+            <div class="title"><a href="${esc(a.link)}" target="_blank" rel="noopener">${esc(a.title)}</a></div>
+            <div class="meta">
+              ${a.source ? `<span class="src">${esc(a.source)}</span>` : ''}
+              <span>${formatDate(a.pubDate)}</span>
+            </div>
+          </div>`;
+        });
+      }
+
+      html += '</div>';
+      return html;
+    }
+
+    // 초기 로드
+    loadSummary();
+    loadCompetitors();
+    loadKeywords();
+  </script>
+</body>
+</html>
