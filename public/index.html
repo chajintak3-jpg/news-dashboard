@@ -9,34 +9,34 @@
 
     body {
       font-family: 'Segoe UI', -apple-system, sans-serif;
-      background: #0c0c18;
-      color: #e0e0e0;
+      background: #ffffff;
+      color: #222222;
       min-height: 100vh;
     }
 
     /* 헤더 */
     header {
-      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      background: linear-gradient(135deg, #f0f4f8, #e2e8f0);
       padding: 28px 24px 20px;
       text-align: center;
-      border-bottom: 1px solid #2a2a4a;
+      border-bottom: 1px solid #d0d5dd;
     }
 
-    header h1 { font-size: 1.5rem; color: #7ec8e3; margin-bottom: 4px; }
-    header p { font-size: 0.82rem; color: #888; }
+    header h1 { font-size: 1.5rem; color: #1a73e8; margin-bottom: 4px; }
+    header p { font-size: 0.82rem; color: #666; }
 
     /* 메인 탭 */
     .main-tabs {
       display: flex;
       justify-content: center;
       gap: 0;
-      background: #12122a;
-      border-bottom: 2px solid #2a2a4a;
+      background: #f8f9fa;
+      border-bottom: 2px solid #d0d5dd;
     }
 
     .main-tab {
       padding: 14px 36px;
-      color: #888;
+      color: #666;
       font-size: 0.95rem;
       font-weight: 600;
       cursor: pointer;
@@ -46,8 +46,8 @@
       user-select: none;
     }
 
-    .main-tab:hover { color: #aaa; }
-    .main-tab.active { color: #7ec8e3; border-bottom-color: #7ec8e3; }
+    .main-tab:hover { color: #444; }
+    .main-tab.active { color: #1a73e8; border-bottom-color: #1a73e8; }
 
     /* 컨텐츠 영역 */
     .content { max-width: 1100px; margin: 0 auto; padding: 24px; }
@@ -65,46 +65,46 @@
 
     .sub-tab {
       padding: 8px 16px;
-      background: #1a1a2e;
-      border: 1px solid #2a2a4a;
+      background: #f0f2f5;
+      border: 1px solid #d0d5dd;
       border-radius: 20px;
-      color: #888;
+      color: #666;
       font-size: 0.82rem;
       cursor: pointer;
       transition: all 0.2s;
       user-select: none;
     }
 
-    .sub-tab:hover { border-color: #4a4a6a; color: #bbb; }
-    .sub-tab.active { background: #7ec8e3; color: #0c0c18; border-color: #7ec8e3; font-weight: 600; }
+    .sub-tab:hover { border-color: #a0a8b4; color: #333; }
+    .sub-tab.active { background: #1a73e8; color: #ffffff; border-color: #1a73e8; font-weight: 600; }
 
     .sub-tab .count {
       display: inline-block;
-      background: rgba(0,0,0,0.2);
+      background: rgba(0,0,0,0.1);
       font-size: 0.7rem;
       padding: 1px 6px;
       border-radius: 8px;
       margin-left: 4px;
     }
 
-    .sub-tab.active .count { background: rgba(0,0,0,0.3); color: #0c0c18; }
+    .sub-tab.active .count { background: rgba(255,255,255,0.3); color: #ffffff; }
 
     /* 기사 리스트 */
     .articles { display: flex; flex-direction: column; gap: 10px; }
 
     .article {
-      background: #161630;
-      border: 1px solid #2a2a4a;
+      background: #ffffff;
+      border: 1px solid #d0d5dd;
       border-radius: 8px;
       padding: 16px 20px;
       transition: border-color 0.2s;
     }
 
-    .article:hover { border-color: #3a5a7a; }
+    .article:hover { border-color: #1a73e8; }
 
     .article .source {
       font-size: 0.7rem;
-      color: #5a8aaa;
+      color: #1a73e8;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 4px;
@@ -112,7 +112,7 @@
 
     .article .title {
       font-size: 0.95rem;
-      color: #ddd;
+      color: #222;
       font-weight: 600;
       line-height: 1.45;
       margin-bottom: 6px;
@@ -123,32 +123,32 @@
       text-decoration: none;
     }
 
-    .article .title a:hover { color: #7ec8e3; }
+    .article .title a:hover { color: #1a73e8; }
 
     .article .desc {
       font-size: 0.83rem;
-      color: #999;
+      color: #555;
       line-height: 1.6;
       margin-bottom: 8px;
     }
 
     .article .date {
       font-size: 0.73rem;
-      color: #555;
+      color: #888;
     }
 
     /* 로딩 / 상태 */
     .loading {
       text-align: center;
       padding: 60px 0;
-      color: #666;
+      color: #888;
     }
 
     .spinner {
       display: inline-block;
       width: 24px; height: 24px;
-      border: 3px solid #2a2a4a;
-      border-top-color: #7ec8e3;
+      border: 3px solid #d0d5dd;
+      border-top-color: #1a73e8;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
       margin-bottom: 10px;
@@ -159,16 +159,16 @@
     .empty {
       text-align: center;
       padding: 40px;
-      color: #555;
+      color: #888;
       font-size: 0.88rem;
     }
 
     .error-msg {
-      background: #2a1a1a;
-      border: 1px solid #5a2a2a;
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
       border-radius: 8px;
       padding: 14px;
-      color: #e88;
+      color: #dc2626;
       font-size: 0.85rem;
     }
 
@@ -180,21 +180,21 @@
       gap: 12px;
     }
 
-    .refresh-bar .last-update { font-size: 0.75rem; color: #555; }
+    .refresh-bar .last-update { font-size: 0.75rem; color: #888; }
 
     .refresh-btn {
       padding: 6px 14px;
-      background: #1a1a2e;
-      border: 1px solid #3a3a5a;
+      background: #f0f2f5;
+      border: 1px solid #d0d5dd;
       border-radius: 6px;
-      color: #7ec8e3;
+      color: #1a73e8;
       font-size: 0.8rem;
       cursor: pointer;
       transition: all 0.2s;
     }
 
-    .refresh-btn:hover { background: #2a2a4a; }
-    .refresh-btn:disabled { color: #555; cursor: wait; }
+    .refresh-btn:hover { background: #e2e8f0; }
+    .refresh-btn:disabled { color: #aaa; cursor: wait; }
 
     /* Summary 패널 */
     .summary-section {
@@ -203,10 +203,10 @@
 
     .summary-section-title {
       font-size: 1.05rem;
-      color: #7ec8e3;
+      color: #1a73e8;
       margin-bottom: 14px;
       padding-bottom: 8px;
-      border-bottom: 1px solid #2a2a4a;
+      border-bottom: 1px solid #d0d5dd;
     }
 
     .summary-grid {
@@ -217,19 +217,19 @@
     }
 
     .summary-group {
-      background: #161630;
-      border: 1px solid #2a2a4a;
+      background: #ffffff;
+      border: 1px solid #d0d5dd;
       border-radius: 8px;
       overflow: hidden;
     }
 
     .summary-group-header {
-      background: #1a1a3a;
+      background: #f0f4f8;
       padding: 10px 16px;
       font-size: 0.88rem;
       font-weight: 600;
-      color: #ccc;
-      border-bottom: 1px solid #2a2a4a;
+      color: #333;
+      border-bottom: 1px solid #d0d5dd;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -237,22 +237,22 @@
 
     .summary-group-header .count {
       font-size: 0.7rem;
-      color: #6a8fa8;
+      color: #1a73e8;
       font-weight: 400;
     }
 
     .summary-article {
       padding: 10px 16px;
-      border-bottom: 1px solid #1a1a2e;
+      border-bottom: 1px solid #eef0f2;
       transition: background 0.15s;
     }
 
     .summary-article:last-child { border-bottom: none; }
-    .summary-article:hover { background: #1c1c3a; }
+    .summary-article:hover { background: #f8f9fa; }
 
     .summary-article .title {
       font-size: 0.83rem;
-      color: #ddd;
+      color: #222;
       font-weight: 500;
       line-height: 1.4;
       margin-bottom: 3px;
@@ -263,16 +263,16 @@
       text-decoration: none;
     }
 
-    .summary-article .title a:hover { color: #7ec8e3; }
+    .summary-article .title a:hover { color: #1a73e8; }
 
     .summary-article .meta {
       font-size: 0.7rem;
-      color: #555;
+      color: #888;
       display: flex;
       gap: 8px;
     }
 
-    .summary-article .meta .src { color: #5a8aaa; }
+    .summary-article .meta .src { color: #1a73e8; }
   </style>
 </head>
 <body>
