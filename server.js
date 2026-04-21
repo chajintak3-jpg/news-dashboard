@@ -1,7 +1,5 @@
 const express = require('express');
 const https = require('https');
-const http = require('http');
-const { parseStringPromise } = require('xml2js');
 const path = require('path');
 
 const app = express();
@@ -27,52 +25,46 @@ const KEYWORDS = [
 // 정적 파일 서빙
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Google News RSS 가져오기
-function fetchRss(query) {
-  const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=ko&gl=KR&ceid=KR:ko`;
+// Google News RSS를 rss2json 프록시를 통해 가져오기
+function fetchNews(query) {
+  const googleRssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=ko&gl=KR&ceid=KR:ko`;
+  const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(googleRssUrl)}`;
 
   return new Promise((resolve, reject) => {
-    const client = url.startsWith('https') ? https : http;
-    client.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (res) => {
-      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        // 리다이렉트 처리
-        const redirectClient = res.headers.location.startsWith('https') ? https : http;
-        redirectClient.get(res.headers.location, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (res2) => {
-          let data = '';
-          res2.on('data', chunk => data += chunk);
-          res2.on('end', () => resolve(data));
-          res2.on('error', reject);
-        }).on('error', reject);
-        return;
-      }
+    https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
-      res.on('end', () => resolve(data));
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          if (json.status !== 'ok') {
+            return resolve([]);
+          }
+          const articles = (json.items || []).map(item => {
+            let desc = (item.description || item.content || '').replace(/<[^>]*>/g, '').trim();
+            let title = (item.title || '').replace(/<[^>]*>/g, '').trim();
+            // source를 title에서 추출 (title 형식: "기사제목 - 출처")
+            let source = '';
+            const dashIdx = title.lastIndexOf(' - ');
+            if (dashIdx > 0) {
+              source = title.substring(dashIdx + 3).trim();
+              title = title.substring(0, dashIdx).trim();
+            }
+            return {
+              title,
+              link: item.link || '',
+              description: desc,
+              pubDate: item.pubDate || '',
+              source,
+            };
+          });
+          resolve(articles);
+        } catch (e) {
+          reject(e);
+        }
+      });
       res.on('error', reject);
     }).on('error', reject);
-  });
-}
-
-// RSS XML 파싱
-async function parseRss(xml) {
-  const result = await parseStringPromise(xml, { explicitArray: false });
-  const channel = result?.rss?.channel;
-  if (!channel || !channel.item) return [];
-
-  const items = Array.isArray(channel.item) ? channel.item : [channel.item];
-
-  return items.map(item => {
-    // description에서 HTML 태그 제거
-    let desc = item.description || '';
-    desc = desc.replace(/<[^>]*>/g, '').trim();
-
-    return {
-      title: (item.title || '').replace(/<[^>]*>/g, '').trim(),
-      link: item.link || '',
-      description: desc,
-      pubDate: item.pubDate || '',
-      source: item.source?._  || item.source || '',
-    };
   });
 }
 
@@ -87,8 +79,7 @@ app.get('/api/competitors', async (req, res) => {
     const results = await Promise.all(
       COMPETITORS.map(async (comp) => {
         try {
-          const xml = await fetchRss(comp.query);
-          const articles = sortByDate(await parseRss(xml));
+          const articles = sortByDate(await fetchNews(comp.query));
           return { name: comp.name, articles };
         } catch (err) {
           return { name: comp.name, articles: [], error: err.message };
@@ -107,8 +98,7 @@ app.get('/api/keywords', async (req, res) => {
     const results = await Promise.all(
       KEYWORDS.map(async (kw) => {
         try {
-          const xml = await fetchRss(kw.query);
-          const articles = sortByDate(await parseRss(xml));
+          const articles = sortByDate(await fetchNews(kw.query));
           return { name: kw.name, articles };
         } catch (err) {
           return { name: kw.name, articles: [], error: err.message };
@@ -132,8 +122,7 @@ app.get('/api/summary', async (req, res) => {
     const results = await Promise.all(
       allSources.map(async (src) => {
         try {
-          const xml = await fetchRss(src.query);
-          const articles = sortByDate(await parseRss(xml)).slice(0, 5);
+          const articles = sortByDate(await fetchNews(src.query)).slice(0, 5);
           return { name: src.name, type: src.type, articles };
         } catch (err) {
           return { name: src.name, type: src.type, articles: [], error: err.message };
